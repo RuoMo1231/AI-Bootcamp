@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: docker_mysql1
+    ports:
+      - 33059:3306
+    env_file:
+      - path: ./.env
+        required: true
+  redis:
+    image: redis:8
+    container_name: docker_redis1
+    ports:
+      - 63790:6379
