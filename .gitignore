@@ -1,0 +1,3 @@
+/infrastructure/.env
+/infrastructure/mysql/data/
+/infrastructure/redis/data/
