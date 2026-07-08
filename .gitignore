@@ -1,3 +1,11 @@
+# Infrastructure
 /infrastructure/.env
 /infrastructure/mysql/data/
 /infrastructure/redis/data/
+
+# python
+/projects/**/.venv/
+/projects/**/__pycache__/
+
+# IDE
+.idea/
