@@ -3,7 +3,7 @@ import pymysql
 connection = pymysql.connect(
     host="localhost",
     port=33059,
-    user="root",
+    user="ruomo",
     password="123456",
     database="ai_workspace",
 )
