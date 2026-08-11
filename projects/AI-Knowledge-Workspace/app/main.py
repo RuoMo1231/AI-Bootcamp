@@ -1,9 +1,12 @@
+import os
+from dotenv import load_dotenv
 import pymysql
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 app = FastAPI()
-
+load_dotenv()
+password = os.getenv("MYSQL_PASSWORD")
 
 class User(BaseModel):
     username: str = Field(..., min_length=3, max_length=20)

@@ -4,8 +4,9 @@
 /infrastructure/redis/data/
 
 # python
-/projects/**/.venv/
+/projects/**/.venv/**
 /projects/**/__pycache__/
+/projects/**/.env
 
 # IDE
 .idea/
