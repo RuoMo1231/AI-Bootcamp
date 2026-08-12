@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import pymysql
 
+
 load_dotenv()
 
 sql = """
@@ -34,3 +35,4 @@ try:
                 )
 except pymysql.MySQLError as e:
     print(f"MySQL error:{e}")
+

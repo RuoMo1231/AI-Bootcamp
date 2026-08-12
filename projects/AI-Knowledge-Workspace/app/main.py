@@ -1,44 +1,36 @@
-import os
-from dotenv import load_dotenv
-import pymysql
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException, status
+from app.schemas import UserCreate
+from app.db import get_connection, execute_sql, DatabaseError
 
 app = FastAPI()
-load_dotenv()
-password = os.getenv("MYSQL_PASSWORD")
-
-class User(BaseModel):
-    username: str = Field(..., min_length=3, max_length=20)
-    password: str = Field(..., min_length=6)
-    age: int = Field(..., ge=18, le=100)
 
 
-@app.post("/users")
-def create_user(user: User):
-    connection = pymysql.connect(
-        host="localhost",
-        port=33059,
-        user="ruomo",
-        password="123456",
-        database="ai_workspace",
-        charset="utf8mb4"
-    )
+@app.post("/users", status_code=status.HTTP_201_CREATED)
+def create_user(user: UserCreate):
+    try:
+        connection = get_connection()
+        params = (
+            user.username,
+            user.password,
+            user.age
+        )
+        sql = """
+                INSERT INTO users (username, password, age)
+                VALUES (%s, %s, %s)
+            """
+        execute_sql(
+            connection=connection,
+            sql=sql,
+            params=params
+        )
 
-    cursor = connection.cursor()
+        return {
+            "message": "User created successfully",
+            "username": user.username
+        }
 
-    sql = """
-            INSERT INTO users (username, password, age)
-            VALUES (%s, %s, %s)
-        """
-
-    cursor.execute(sql, (user.username, user.password, user.age))
-
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-    return {
-        "message": "User created successfully",
-        "username": user.username
-    }
+    except DatabaseError:
+        raise HTTPException(
+            status_code=500,
+            detail="Database operation failed"
+        )
