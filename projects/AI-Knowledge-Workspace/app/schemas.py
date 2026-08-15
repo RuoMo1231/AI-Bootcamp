@@ -6,3 +6,13 @@ class UserCreate(BaseModel):
     password: str
     age: int
 
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    age: int
+
+
+class UserUpdate(BaseModel):
+    username: str | None = None
+    age: int | None = None
