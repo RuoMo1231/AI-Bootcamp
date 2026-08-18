@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from app.schemas import UserCreate, UserResponse, UserUpdate
-from app.db import get_connection, execute_sql, fetch_one, fetch_all, update_sql, delete_sql, DatabaseError
+from app.db import get_connection, execute_sql, get_user_sql, fetch_all, update_sql, delete_user_sql, DatabaseError
 
 app = FastAPI()
 
@@ -8,21 +8,17 @@ app = FastAPI()
 @app.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate):
     try:
-        connection = get_connection()
+        sql = """
+                INSERT INTO users (username, password, age)
+                VALUES (%s, %s, %s)
+            """
         params = (
             user.username,
             user.password,
             user.age
         )
-        sql = """
-                INSERT INTO users (username, password, age)
-                VALUES (%s, %s, %s)
-            """
-        execute_sql(
-            connection=connection,
-            sql=sql,
-            params=params
-        )
+        connection = get_connection()
+        execute_sql(connection=connection, sql=sql, params=params)
 
         return {
             "message": "User created successfully",
@@ -39,19 +35,18 @@ def create_user(user: UserCreate):
 @app.get("/user/{user_id}")
 def get_user(user_id: int) -> UserResponse:
     try:
-        sql = """
-                SELECT id,username,age FROM users WHERE id=%s;
-            """
-        params = (user_id,)
         connection = get_connection()
-        user_data = fetch_one(connection=connection, sql=sql, params=params)
+        user_data = get_user_sql(
+            connection=connection,
+            user_id=user_id
+        )
         if user_data is None:
             raise HTTPException(
                 status_code=404,
                 detail="404 NOT FOUND"
             )
         user_response = UserResponse(id=user_data[0], username=user_data[1], age=user_data[2])
-
+        print(user_response)
         return user_response
 
     except DatabaseError:
@@ -111,12 +106,12 @@ def update_user(user_id: int, user: UserUpdate) -> UserResponse:
 @app.delete("/user/{user_id}")
 def delete_user(user_id: int):
     try:
-        sql = """
-            DELETE FROM users WHERE id=%s
-            """
-        params = (user_id,)
         connection = get_connection()
-        delete_status = delete_sql(connection=connection, sql=sql, params=params)
+        delete_status = delete_user_sql(
+            connection=connection,
+            user_id=user_id
+        )
+
         if delete_status == 0:
             raise HTTPException(
                 status_code=404,
