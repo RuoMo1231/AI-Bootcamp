@@ -27,7 +27,7 @@ def get_connection():
         raise DatabaseError("Database connection failed") from e
 
 
-def execute_sql(connection, sql, params):
+def create_sql(connection, sql, params):
     try:
         with connection:
             with connection.cursor() as cursor:
@@ -37,6 +37,15 @@ def execute_sql(connection, sql, params):
     except pymysql.MySQLError as e:
         print(f"MySQL Execute Error:{e}")
         raise DatabaseError("Database operation failed") from e
+
+
+def create_user_sql(connection, username, password, age):
+    sql = """
+            INSERT INTO users(username,password,age)
+            VALUES(%s,%s,%s)
+        """
+    params = (username, password, age)
+    create_sql(connection=connection, sql=sql, params=params)
 
 
 def fetch_one(connection, sql, params):
@@ -60,6 +69,7 @@ def get_user_sql(connection, user_id):
     data = fetch_one(connection=connection, sql=sql, params=params)
     return data
 
+
 def fetch_all(connection, sql, params):
     try:
         with connection:
@@ -71,6 +81,15 @@ def fetch_all(connection, sql, params):
     except pymysql.MySQLError as e:
         print(f"MySQL Execute Error:{e}")
         raise DatabaseError("Database operation failed") from e
+
+
+def get_users_sql(connection, max_num):
+    sql = """
+        SELECT id,username,age FROM users LIMIT %s;
+        """
+    params = (max_num,)
+    data = fetch_all(connection=connection, sql=sql, params=params)
+    return data
 
 
 def update_sql(connection, sql, params):
@@ -85,6 +104,15 @@ def update_sql(connection, sql, params):
     except pymysql.MySQLError as e:
         print(f"MySQL Execute Error:{e}")
         raise DatabaseError("Database operation failed") from e
+
+
+def update_user_sql(connection, username, age, user_id):
+    sql = """
+        UPDATE users SET username=%s,age=%s WHERE id=%s;
+        """
+    params = (username, age, user_id)
+    update_status = update_sql(connection=connection, sql=sql, params=params)
+    return update_status
 
 
 def delete_sql(connection, sql, params):

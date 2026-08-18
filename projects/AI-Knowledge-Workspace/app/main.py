@@ -1,6 +1,12 @@
 from fastapi import FastAPI, HTTPException, status
 from app.schemas import UserCreate, UserResponse, UserUpdate
-from app.db import get_connection, execute_sql, get_user_sql, fetch_all, update_sql, delete_user_sql, DatabaseError
+from app.db import (get_connection,
+                    create_user_sql,
+                    get_user_sql,
+                    get_users_sql,
+                    update_user_sql,
+                    delete_user_sql,
+                    DatabaseError)
 
 app = FastAPI()
 
@@ -8,17 +14,12 @@ app = FastAPI()
 @app.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate):
     try:
-        sql = """
-                INSERT INTO users (username, password, age)
-                VALUES (%s, %s, %s)
-            """
-        params = (
-            user.username,
-            user.password,
-            user.age
-        )
         connection = get_connection()
-        execute_sql(connection=connection, sql=sql, params=params)
+        create_user_sql(connection=connection,
+                        username=user.username,
+                        password=user.password,
+                        age=user.age
+                        )
 
         return {
             "message": "User created successfully",
@@ -59,12 +60,8 @@ def get_user(user_id: int) -> UserResponse:
 @app.get("/users/{max_num}")
 def get_users(max_num: int) -> list[UserResponse]:
     try:
-        sql = """
-            SELECT id,username,age FROM users LIMIT %s;
-            """
-        params = (max_num,)
         connection = get_connection()
-        data = fetch_all(connection=connection, sql=sql, params=params)
+        data = get_users_sql(connection=connection, max_num=max_num)
         users_response = []
         for user_data in data:
             user_data = UserResponse(id=user_data[0], username=user_data[1], age=user_data[2])
@@ -82,12 +79,12 @@ def get_users(max_num: int) -> list[UserResponse]:
 @app.put("/update/{user_id}")
 def update_user(user_id: int, user: UserUpdate) -> UserResponse:
     try:
-        sql = """
-            UPDATE users SET username=%s, age=%s WHERE id=%s
-            """
-        params = (user.username, user.age, user_id)
         connection = get_connection()
-        update_status = update_sql(connection=connection, sql=sql, params=params)
+        update_status = update_user_sql(connection=connection,
+                                        username=user.username,
+                                        age=user.age,
+                                        user_id=user_id
+                                        )
         if update_status == 0:
             raise HTTPException(
                 status_code=404,
