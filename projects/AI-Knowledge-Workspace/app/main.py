@@ -14,12 +14,11 @@ app = FastAPI()
 @app.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate):
     try:
-        connection = get_connection()
-        create_user_sql(connection=connection,
-                        username=user.username,
-                        password=user.password,
-                        age=user.age
-                        )
+        create_user_sql(
+            username=user.username,
+            password=user.password,
+            age=user.age
+        )
 
         return {
             "message": "User created successfully",
@@ -36,9 +35,7 @@ def create_user(user: UserCreate):
 @app.get("/user/{user_id}")
 def get_user(user_id: int) -> UserResponse:
     try:
-        connection = get_connection()
         user_data = get_user_sql(
-            connection=connection,
             user_id=user_id
         )
         if user_data is None:
@@ -60,8 +57,7 @@ def get_user(user_id: int) -> UserResponse:
 @app.get("/users/{max_num}")
 def get_users(max_num: int) -> list[UserResponse]:
     try:
-        connection = get_connection()
-        data = get_users_sql(connection=connection, max_num=max_num)
+        data = get_users_sql(max_num=max_num)
         users_response = []
         for user_data in data:
             user_data = UserResponse(id=user_data[0], username=user_data[1], age=user_data[2])
@@ -79,12 +75,11 @@ def get_users(max_num: int) -> list[UserResponse]:
 @app.put("/update/{user_id}")
 def update_user(user_id: int, user: UserUpdate) -> UserResponse:
     try:
-        connection = get_connection()
-        update_status = update_user_sql(connection=connection,
-                                        username=user.username,
-                                        age=user.age,
-                                        user_id=user_id
-                                        )
+        update_status = update_user_sql(
+            username=user.username,
+            age=user.age,
+            user_id=user_id
+        )
         if update_status == 0:
             raise HTTPException(
                 status_code=404,
@@ -103,9 +98,7 @@ def update_user(user_id: int, user: UserUpdate) -> UserResponse:
 @app.delete("/user/{user_id}")
 def delete_user(user_id: int):
     try:
-        connection = get_connection()
         delete_status = delete_user_sql(
-            connection=connection,
             user_id=user_id
         )
 
