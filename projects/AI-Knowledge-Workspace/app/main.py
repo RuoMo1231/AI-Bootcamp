@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException, status
 from app.schemas import UserCreate, UserResponse, UserUpdate
-from app.db import (get_connection,
-                    create_user_sql,
-                    get_user_sql,
-                    get_users_sql,
-                    update_user_sql,
-                    delete_user_sql,
-                    DatabaseError)
+from app.db import (
+    create_user_sql,
+    get_users_sql,
+    DatabaseError,
+    get_user_cache,
+    update_user_cache,
+    delete_user_cache
+)
 
 app = FastAPI()
 
@@ -35,15 +36,13 @@ def create_user(user: UserCreate):
 @app.get("/user/{user_id}")
 def get_user(user_id: int) -> UserResponse:
     try:
-        user_data = get_user_sql(
-            user_id=user_id
-        )
+        user_data = get_user_cache(user_id=user_id)
         if user_data is None:
             raise HTTPException(
                 status_code=404,
                 detail="404 NOT FOUND"
             )
-        user_response = UserResponse(id=user_data[0], username=user_data[1], age=user_data[2])
+        user_response = UserResponse(id=user_data["id"], username=user_data["username"], age=user_data["age"])
         print(user_response)
         return user_response
 
@@ -75,11 +74,8 @@ def get_users(max_num: int) -> list[UserResponse]:
 @app.put("/update/{user_id}")
 def update_user(user_id: int, user: UserUpdate) -> UserResponse:
     try:
-        update_status = update_user_sql(
-            username=user.username,
-            age=user.age,
-            user_id=user_id
-        )
+        update_status = update_user_cache(user_id=user_id, user=user)
+
         if update_status == 0:
             raise HTTPException(
                 status_code=404,
@@ -98,9 +94,7 @@ def update_user(user_id: int, user: UserUpdate) -> UserResponse:
 @app.delete("/user/{user_id}")
 def delete_user(user_id: int):
     try:
-        delete_status = delete_user_sql(
-            user_id=user_id
-        )
+        delete_status = delete_user_cache(user_id=user_id)
 
         if delete_status == 0:
             raise HTTPException(
